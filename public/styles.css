@@ -1,0 +1,349 @@
+:root {
+  --ivory: #f6efe4;
+  --paper: #fff8ef;
+  --blush: #e7c3b4;
+  --maroon: #6d1c2a;
+  --wine: #4a101b;
+  --gold: #c4a35a;
+  --gold-deep: #9a7430;
+  --ink: #3a2428;
+  --muted: #7a5f62;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Josefin Sans", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at top, #fff7ec 0%, var(--ivory) 42%, #ead7c6 100%);
+  overflow-x: hidden;
+}
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow {
+  position: absolute;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.35;
+}
+
+.glow-one {
+  top: -8rem;
+  left: -6rem;
+  background: #f3c9b5;
+}
+
+.glow-two {
+  right: -8rem;
+  bottom: -8rem;
+  background: #d9b56a;
+}
+
+.petal-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  top: -2rem;
+  width: 10px;
+  height: 14px;
+  border-radius: 80% 0 80% 0;
+  background: linear-gradient(135deg, #f4c7b3, #c45c5c);
+  opacity: 0.55;
+  animation: fall linear infinite;
+}
+
+#celebrate {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.card {
+  width: min(720px, 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 249, 241, 0.94), rgba(255, 244, 232, 0.96)),
+    var(--paper);
+  border: 1px solid rgba(196, 163, 90, 0.45);
+  box-shadow:
+    0 30px 80px rgba(74, 16, 27, 0.14),
+    inset 0 0 0 8px rgba(196, 163, 90, 0.12);
+  border-radius: 28px;
+  padding: clamp(1.6rem, 4vw, 3.2rem);
+  text-align: center;
+  animation: rise 0.8s ease both;
+}
+
+.ornament {
+  color: var(--gold-deep);
+  letter-spacing: 0.45em;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.monogram {
+  font-family: "Great Vibes", cursive;
+  font-size: clamp(2.7rem, 8vw, 4.6rem);
+  color: var(--maroon);
+  line-height: 1;
+}
+
+.rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin: 1rem 0 1.3rem;
+  color: var(--gold-deep);
+}
+
+.rule span {
+  width: 72px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.kicker {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+h1,
+.question {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 6vw, 3.15rem);
+  line-height: 1.15;
+  color: var(--wine);
+  margin: 0.4rem 0 1rem;
+}
+
+.lede {
+  max-width: 38rem;
+  margin: 0 auto 1.8rem;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 0.98rem;
+}
+
+.links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.invite {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.3rem 1rem 1.15rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffdf8, #f6e6d6);
+  border: 1px solid rgba(154, 116, 48, 0.28);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.invite:hover,
+.invite:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(109, 28, 42, 0.12);
+}
+
+.invite strong {
+  display: block;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.45rem;
+  color: var(--maroon);
+  margin-bottom: 0.35rem;
+}
+
+.invite p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.copy-row {
+  display: flex;
+  justify-content: center;
+}
+
+button,
+.chip {
+  font-family: inherit;
+  cursor: pointer;
+  border: 0;
+}
+
+.chip,
+.yes-btn,
+.reset-btn {
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: transparent;
+  color: var(--gold-deep);
+  border: 1px solid rgba(154, 116, 48, 0.4);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.yes-btn {
+  margin-top: 1.4rem;
+  padding: 0.9rem 2rem;
+  background: var(--maroon);
+  color: #fff8ef;
+  border-color: var(--maroon);
+  font-size: 0.86rem;
+  letter-spacing: 0.16em;
+}
+
+.yes-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.vow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 0.4rem;
+}
+
+.vow input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.heart {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--gold-deep);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: 0.25s ease;
+}
+
+.heart::before {
+  content: "♥";
+  font-size: 0.95rem;
+}
+
+.vow input:checked + .heart,
+.vow.is-locked .heart {
+  background: var(--maroon);
+  border-color: var(--maroon);
+  color: #fff4ea;
+  box-shadow: 0 0 0 6px rgba(109, 28, 42, 0.08);
+}
+
+.vow-copy {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.35rem;
+}
+
+.status {
+  margin-top: 1.4rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.married .monogram {
+  font-size: clamp(3.2rem, 10vw, 5.4rem);
+}
+
+.married h1 {
+  margin-top: 0.6rem;
+}
+
+.reset-btn {
+  margin-top: 1.6rem;
+}
+
+.waiting-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(110vh) rotate(280deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    box-shadow: 0 16px 40px rgba(74, 16, 27, 0.12);
+  }
+}

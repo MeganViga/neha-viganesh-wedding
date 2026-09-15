@@ -1,0 +1,12 @@
+{
+  "name": "neha-viganesh-wedding",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A two-link wedding vow site for Neha and Viganesh",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
