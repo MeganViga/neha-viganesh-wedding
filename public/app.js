@@ -25,12 +25,53 @@ let lastMarried = false;
 let lastFingerprint = "";
 let confetti = [];
 let confettiTimer = 0;
+const LOCAL_KEY = "neha-viganesh-vows";
+const channel = "BroadcastChannel" in window ? new BroadcastChannel(LOCAL_KEY) : null;
+
+function withMarried(state) {
+  const next = {
+    neha: Boolean(state && state.neha),
+    viganesh: Boolean(state && state.viganesh),
+  };
+  next.married = next.neha && next.viganesh;
+  return next;
+}
+
+function readLocalState() {
+  try {
+    return withMarried(JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"));
+  } catch {
+    return withMarried({});
+  }
+}
+
+function writeLocalState(state) {
+  const next = withMarried(state);
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+  if (channel) channel.postMessage(next);
+  return next;
+}
+
+function looksLikeJson(response) {
+  return (response.headers.get("content-type") || "").includes("json");
+}
 
 function route() {
+  const hash = (window.location.hash || "").replace(/^#\/?/, "").replace(/\/$/, "");
+  if (hash === "for-neha") return PEOPLE.neha;
+  if (hash === "for-viganesh") return PEOPLE.viganesh;
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
-  if (path === "/for-neha") return PEOPLE.neha;
-  if (path === "/for-viganesh") return PEOPLE.viganesh;
+  if (path.endsWith("/for-neha")) return PEOPLE.neha;
+  if (path.endsWith("/for-viganesh")) return PEOPLE.viganesh;
   return null;
+}
+
+function shareUrl(slug) {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = `/${slug}`;
+  url.pathname = url.pathname.replace(/\/for-(neha|viganesh)\/?$/, "/");
+  return url.toString();
 }
 
 function escapeHtml(value) {
@@ -42,29 +83,50 @@ function escapeHtml(value) {
 }
 
 function currentUrl(path) {
-  return `${window.location.origin}${path}`;
+  const slug = String(path).replace(/^\//, "");
+  return shareUrl(slug);
 }
 
 async function fetchState() {
-  const response = await fetch("/api/state", { cache: "no-store" });
-  if (!response.ok) throw new Error("Could not load vows");
-  return response.json();
+  try {
+    const response = await fetch("/api/state", { cache: "no-store" });
+    if (response.ok && looksLikeJson(response)) {
+      return withMarried(await response.json());
+    }
+  } catch {
+    // Static hosts like GitHub Pages have no API; keep the vows locally.
+  }
+  return readLocalState();
 }
 
 async function sayYes(who) {
-  const response = await fetch("/api/yes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ who }),
-  });
-  if (!response.ok) throw new Error("Could not save the vow");
-  return response.json();
+  try {
+    const response = await fetch("/api/yes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ who }),
+    });
+    if (response.ok && looksLikeJson(response)) {
+      return withMarried(await response.json());
+    }
+  } catch {
+    // Fall through to local vows.
+  }
+  const next = readLocalState();
+  next[who] = true;
+  return writeLocalState(next);
 }
 
 async function resetVows() {
-  const response = await fetch("/api/reset", { method: "POST" });
-  if (!response.ok) throw new Error("Could not reset");
-  return response.json();
+  try {
+    const response = await fetch("/api/reset", { method: "POST" });
+    if (response.ok && looksLikeJson(response)) {
+      return withMarried(await response.json());
+    }
+  } catch {
+    // Fall through to local vows.
+  }
+  return writeLocalState({ neha: false, viganesh: false });
 }
 
 function ornament() {
@@ -90,18 +152,18 @@ function renderHome(state) {
         both pages turn into a wedding.
       </p>
       <div class="links">
-        <a class="invite" href="/for-neha">
+        <a class="invite" href="#/for-neha">
           <strong>Neha’s question</strong>
           <p>Do you want to marry Viganesh?</p>
           <div class="copy-row">
-            <button class="chip" data-copy="${escapeHtml(currentUrl("/for-neha"))}" type="button">Copy her link</button>
+            <button class="chip" data-copy="${escapeHtml(shareUrl("for-neha"))}" type="button">Copy her link</button>
           </div>
         </a>
-        <a class="invite" href="/for-viganesh">
+        <a class="invite" href="#/for-viganesh">
           <strong>Viganesh’s question</strong>
           <p>Do you want to marry Neha?</p>
           <div class="copy-row">
-            <button class="chip" data-copy="${escapeHtml(currentUrl("/for-viganesh"))}" type="button">Copy his link</button>
+            <button class="chip" data-copy="${escapeHtml(shareUrl("for-viganesh"))}" type="button">Copy his link</button>
           </div>
         </a>
       </div>
@@ -314,6 +376,13 @@ async function refresh() {
 spawnPetals();
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
+window.addEventListener("hashchange", () => {
+  lastFingerprint = "";
+  refresh();
+});
+if (channel) {
+  channel.addEventListener("message", (event) => paint(withMarried(event.data)));
+}
 tickConfetti();
 refresh();
 setInterval(refresh, 1200);
