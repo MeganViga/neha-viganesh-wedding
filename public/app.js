@@ -26,6 +26,7 @@ let lastFingerprint = "";
 let confetti = [];
 let confettiTimer = 0;
 const LOCAL_KEY = "neha-viganesh-vows";
+const REMOTE_API = "https://neha-viganesh-wedding.polite-bottom.workers.dev";
 const channel = "BroadcastChannel" in window ? new BroadcastChannel(LOCAL_KEY) : null;
 
 function withMarried(state) {
@@ -87,30 +88,48 @@ function currentUrl(path) {
   return shareUrl(slug);
 }
 
-async function fetchState() {
-  try {
-    const response = await fetch("/api/state", { cache: "no-store" });
-    if (response.ok && looksLikeJson(response)) {
-      return withMarried(await response.json());
+function apiBases() {
+  const bases = [];
+  if (REMOTE_API) bases.push(REMOTE_API.replace(/\/$/, ""));
+  bases.push("");
+  return [...new Set(bases)];
+}
+
+async function apiRequest(path, options = {}) {
+  for (const base of apiBases()) {
+    try {
+      const response = await fetch(`${base}${path}`, {
+        cache: "no-store",
+        ...options,
+      });
+      if (response.ok && looksLikeJson(response)) {
+        return withMarried(await response.json());
+      }
+    } catch {
+      // Try the next host.
     }
-  } catch {
-    // Static hosts like GitHub Pages have no API; keep the vows locally.
+  }
+  return null;
+}
+
+async function fetchState() {
+  const remote = await apiRequest("/api/state");
+  if (remote) {
+    writeLocalState(remote);
+    return remote;
   }
   return readLocalState();
 }
 
 async function sayYes(who) {
-  try {
-    const response = await fetch("/api/yes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ who }),
-    });
-    if (response.ok && looksLikeJson(response)) {
-      return withMarried(await response.json());
-    }
-  } catch {
-    // Fall through to local vows.
+  const remote = await apiRequest("/api/yes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ who }),
+  });
+  if (remote) {
+    writeLocalState(remote);
+    return remote;
   }
   const next = readLocalState();
   next[who] = true;
@@ -118,13 +137,10 @@ async function sayYes(who) {
 }
 
 async function resetVows() {
-  try {
-    const response = await fetch("/api/reset", { method: "POST" });
-    if (response.ok && looksLikeJson(response)) {
-      return withMarried(await response.json());
-    }
-  } catch {
-    // Fall through to local vows.
+  const remote = await apiRequest("/api/reset", { method: "POST" });
+  if (remote) {
+    writeLocalState(remote);
+    return remote;
   }
   return writeLocalState({ neha: false, viganesh: false });
 }
@@ -385,4 +401,6 @@ if (channel) {
 }
 tickConfetti();
 refresh();
-setInterval(refresh, 1200);
+setInterval(() => {
+  if (document.visibilityState === "visible") refresh();
+}, 1500);

@@ -47,8 +47,16 @@ function publicPayload() {
   };
 }
 
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
 function send(res, status, body, headers = {}) {
-  res.writeHead(status, headers);
+  res.writeHead(status, { ...corsHeaders(), ...headers });
   res.end(body);
 }
 
@@ -101,6 +109,11 @@ function serveStatic(urlPath, res) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (req.method === "OPTIONS") {
+    send(res, 204, "");
+    return;
+  }
 
   if (req.method === "GET" && url.pathname === "/api/state") {
     sendJson(res, 200, publicPayload());
